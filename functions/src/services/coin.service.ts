@@ -33,9 +33,13 @@ async function getAssets(start = 1, limit = 100) {
             },
         );
 
+        const bookmarks = await getBookmarks();
+
         // Assign icon URL to each asset.
         assets = data.data.map((asset) => {
             asset.icon = coinApiIconUrl.replace("{id}", asset.id.toString());
+            asset.is_bookmarked = bookmarks.some((b) => b.id === asset.id);
+
             return asset;
         });
     } catch (err) {
