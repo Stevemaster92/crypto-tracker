@@ -8,6 +8,8 @@ import { getHeaders } from "../helpers";
 const props = defineProps<{ asset: IAsset; isBookmarked: boolean }>();
 const quote = props.asset.quote["USD"];
 const isBookmarked = ref(props.isBookmarked);
+const bookmarking = ref(false);
+const bookmarkText = ref("");
 
 const priceColor = quote.percent_change_24h < 0 ? "text-red-500" : "text-green-500";
 
@@ -19,7 +21,8 @@ const onBookmarked = (event: Event) => {
     getAuth()
         .currentUser?.getIdToken(true)
         .then(async (token) => {
-            // error.value = false;
+            bookmarking.value = true;
+            bookmarkText.value = isBookmarked.value ? "Unbookmarking..." : "Bookmarking...";
 
             try {
                 if (!isBookmarked.value) {
@@ -33,10 +36,13 @@ const onBookmarked = (event: Event) => {
                 }
 
                 isBookmarked.value = !isBookmarked.value;
+                bookmarkText.value = isBookmarked.value ? "Bookmarked!" : "Unbookmarked!";
             } catch (err) {
                 console.log(err);
-                // error.value = true;
+                bookmarkText.value = "Failed!";
             }
+
+            setTimeout(() => (bookmarking.value = false), 2000);
         })
         .catch(console.error);
 };
@@ -76,15 +82,17 @@ const onBookmarked = (event: Event) => {
             Circulating supply: <span>{{ toReadableNumber(asset.circulating_supply) }} {{ asset.symbol }}</span>
         </div>
 
-        <div class="flex asset-details">
-            <div class="flex-grow">
+        <div class="flex items-center asset-details">
+            <div class="flex-grow flex items-center">
                 <button
+                    :disabled="bookmarking"
                     @click.prevent="onBookmarked"
                     :class="isBookmarked ? 'text-green-500' : 'text-gray-900'"
-                    class="p-2"
+                    class="p-2 transition duration-500 transform hover:scale-125"
                 >
                     <span class="icon-heart"></span>
                 </button>
+                <div v-show="bookmarking" class="ml-1 text-xs text-green-500">{{ bookmarkText }}</div>
             </div>
             <div class="italic text-right">Last updated: {{ new Date(asset.last_updated).toLocaleString() }}</div>
         </div>
