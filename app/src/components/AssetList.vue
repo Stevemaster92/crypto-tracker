@@ -12,7 +12,6 @@ import SearchAndSort from "./SearchAndSort.vue";
 
 let assets = ref<IAsset[]>();
 let filtered = ref<IAsset[]>();
-let bookmarks = ref<IAsset[]>();
 
 const error = ref(false);
 const search = ref("");
@@ -69,16 +68,6 @@ const getAssets = (start = 0, limit = 50) => {
         .then(async (token) => {
             error.value = false;
 
-            // Fetch bookmarked assets.
-            try {
-                const { data } = await axios.get<IAsset[]>(`${import.meta.env.VITE_API_URL}/coin/bookmarks`, {
-                    headers: getHeaders(token),
-                });
-                bookmarks.value = data;
-            } catch (err) {
-                // Ignore.
-            }
-
             // Fetch all assets.
             try {
                 const { data } = await axios.get<IAsset[]>(`${import.meta.env.VITE_API_URL}/coin/assets`, {
@@ -97,8 +86,6 @@ const getAssets = (start = 0, limit = 50) => {
         .catch(console.error);
 };
 
-const isBookmarked = (asset: IAsset) => (bookmarks.value ? bookmarks.value.some((b) => b.id === asset.id) : false);
-
 onMounted(() => {
     getAssets();
 });
@@ -113,7 +100,7 @@ onMounted(() => {
         <Pagination @update="getAssets" class="mb-4" />
 
         <div v-if="filtered" class="grid md:grid-cols-2 gap-4">
-            <Asset v-for="asset in filtered" :key="asset.id" :asset="asset" :isBookmarked="isBookmarked(asset)" />
+            <Asset v-for="asset in filtered" :key="asset.id" :asset="asset" />
         </div>
 
         <LoadingBar v-else>Loading assets...</LoadingBar>

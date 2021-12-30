@@ -5,9 +5,9 @@ import { IAsset } from "../models/coin.model";
 import { getAuth } from "firebase/auth";
 import { getHeaders } from "../helpers";
 
-const props = defineProps<{ asset: IAsset; isBookmarked: boolean }>();
+const props = defineProps<{ asset: IAsset }>();
 const quote = props.asset.quote["USD"];
-const isBookmarked = ref(props.isBookmarked);
+const isBookmarked = ref(props.asset.is_bookmarked);
 const bookmarking = ref(false);
 const bookmarkText = ref("");
 

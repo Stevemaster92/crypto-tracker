@@ -16,6 +16,7 @@ interface IAsset {
         [key: string]: IQuote;
     };
     icon?: string;
+    is_bookmarked: boolean;
 }
 
 interface IQuote {
