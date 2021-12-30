@@ -5,7 +5,7 @@ import { IAsset } from "../models/coin.model";
 import { getAuth } from "firebase/auth";
 import { getHeaders } from "../helpers";
 
-const props = defineProps<{ asset: IAsset }>();
+const props = defineProps<{ asset: IAsset; showBookmark: boolean }>();
 const quote = props.asset.quote["USD"];
 const isBookmarked = ref(props.asset.is_bookmarked);
 const bookmarking = ref(false);
@@ -83,7 +83,7 @@ const onBookmarked = (event: Event) => {
         </div>
 
         <div class="flex items-center asset-details">
-            <div class="flex-grow flex items-center">
+            <div v-if="showBookmark" class="flex-grow flex items-center">
                 <button
                     :disabled="bookmarking"
                     @click.prevent="onBookmarked"

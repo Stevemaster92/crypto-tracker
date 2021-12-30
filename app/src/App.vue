@@ -2,11 +2,12 @@
 import { ref, onMounted } from "vue";
 import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 
-import AssetList from "./components/AssetList.vue";
 import LoginForm from "./components/LoginForm.vue";
+import AssetList from "./components/AssetList.vue";
 
 const user = ref<User | null>();
 const auth = getAuth();
+const showBookmarks = ref(false);
 
 const logout = async (event: Event) => await auth.signOut();
 
@@ -20,8 +21,14 @@ onMounted(() => {
         <div class="text-center font-bold text-4xl mb-10">Crypto Tracker</div>
 
         <div v-if="user">
-            <button @click.prevent="logout" class="btn-primary mb-8">Logout</button>
-            <AssetList />
+            <div class="flex space-x-4">
+                <button @click.prevent="logout" class="btn-primary mb-8">Logout</button>
+                <button @click.prevent="showBookmarks = !showBookmarks" class="btn-primary mb-8">
+                    {{ showBookmarks ? "All Assets" : "Bookmarked Assets" }}
+                </button>
+            </div>
+
+            <AssetList :isBookmarked="showBookmarks" />
         </div>
 
         <LoginForm v-else />

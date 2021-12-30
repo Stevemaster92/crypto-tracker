@@ -1,19 +1,21 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
 import axios from "axios";
 import { getAuth } from "firebase/auth";
+import { ref, onMounted, watch } from "vue";
 import { getHeaders } from "../helpers";
 import { IAsset } from "../models/coin.model";
 import Asset from "./Asset.vue";
-import AlertMessage from "./AlertMessage.vue";
 import LoadingBar from "./LoadingBar.vue";
 import Pagination from "./Pagination.vue";
 import SearchAndSort from "./SearchAndSort.vue";
+import AlertMessage from "./AlertMessage.vue";
 
-let assets = ref<IAsset[]>();
-let filtered = ref<IAsset[]>();
+const props = defineProps<{ isBookmarked: boolean }>();
 
+const assets = ref<IAsset[]>();
+const filtered = ref<IAsset[]>();
 const error = ref(false);
+
 const search = ref("");
 const sort = ref("cmc_rank");
 const order = ref("asc");
@@ -70,7 +72,8 @@ const getAssets = (start = 0, limit = 50) => {
 
             // Fetch all assets.
             try {
-                const { data } = await axios.get<IAsset[]>(`${import.meta.env.VITE_API_URL}/coin/assets`, {
+                const resources = props.isBookmarked ? "bookmarks" : "assets";
+                const { data } = await axios.get<IAsset[]>(`${import.meta.env.VITE_API_URL}/coin/${resources}`, {
                     headers: getHeaders(token),
                     params: { start: start * limit + 1, limit },
                 });
@@ -86,23 +89,24 @@ const getAssets = (start = 0, limit = 50) => {
         .catch(console.error);
 };
 
-onMounted(() => {
-    getAssets();
-});
+onMounted(getAssets);
+
+watch(
+    () => props.isBookmarked,
+    () => getAssets(),
+);
 </script>
 
 <template>
     <AlertMessage v-if="error">No assets found!</AlertMessage>
 
-    <div v-else>
-        <SearchAndSort @search="searchBy" @sort="sortBy" class="mb-6" />
+    <SearchAndSort @search="searchBy" @sort="sortBy" class="mb-6" />
 
-        <Pagination @update="getAssets" class="mb-4" />
+    <Pagination v-if="!isBookmarked" @update="getAssets" class="mb-4" />
 
-        <div v-if="filtered" class="grid md:grid-cols-2 gap-4">
-            <Asset v-for="asset in filtered" :key="asset.id" :asset="asset" />
-        </div>
-
-        <LoadingBar v-else>Loading assets...</LoadingBar>
+    <div v-if="filtered" class="grid md:grid-cols-2 gap-4">
+        <Asset v-for="asset in filtered" :key="asset.id" :asset="asset" :showBookmark="!isBookmarked" />
     </div>
+
+    <LoadingBar v-else>Loading assets...</LoadingBar>
 </template>
