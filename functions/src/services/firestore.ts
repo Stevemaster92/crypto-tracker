@@ -21,15 +21,15 @@ export default class FirestoreService<T> {
         return snapshot.docs;
     }
 
-    public create(doc: T) {
-        return this.collection.add(doc);
-    }
+    public async create(doc: T, id?: string) {
+        if (id) {
+            const ref = this.collection.doc(id);
+            await ref.create(doc);
 
-    public createAll(docs: T[]) {
-        docs.forEach((doc) => {
-            // Delay write operation as the limit on Firebase is 10,000 writes/seconds.
-            setTimeout(() => this.create(doc), 1);
-        });
+            return ref;
+        }
+
+        return this.collection.add(doc);
     }
 
     public update(id: string, doc: T) {

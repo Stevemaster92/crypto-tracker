@@ -40,6 +40,52 @@ router.get("/assets", async (req, res) => {
     return res.sendStatus(500);
 });
 
+router.get("/bookmarks", async (req, res) => {
+    try {
+        const assets = await service.getBookmarks();
+
+        if (assets.length == 0) {
+            return res.sendStatus(404);
+        }
+
+        return res.json(assets);
+    } catch (err) {
+        // Ignore.
+    }
+
+    return res.sendStatus(500);
+});
+
+router.post("/bookmarks", async (req, res) => {
+    if (!req.body) {
+        return res.sendStatus(400);
+    }
+
+    try {
+        const created = await service.storeAsset(req.body);
+
+        if (created) {
+            return res.sendStatus(201);
+        }
+    } catch (err) {
+        // Ignore.
+    }
+
+    return res.sendStatus(500);
+});
+
+router.delete("/bookmarks/:slug", async (req, res) => {
+    try {
+        await service.removeAsset(req.params.slug);
+
+        return res.sendStatus(200);
+    } catch (err) {
+        // Ignore.
+    }
+
+    return res.sendStatus(500);
+});
+
 // router.get("/rates/:assetId", async (req, res) => {
 //     try {
 //         res.json(await service.getExchangeRates(req.params.assetId));

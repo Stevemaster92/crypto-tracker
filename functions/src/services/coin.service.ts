@@ -1,9 +1,9 @@
 import axios from "axios";
 import config from "../config";
 import { IAsset, IStatus } from "../models/coin.model";
-// import FirestoreService from "./firestore";
+import FirestoreService from "./firestore";
 
-// const firestore = new FirestoreService<IAsset>("assets");
+const firestore = new FirestoreService<IAsset>("bookmarks");
 const coinApiIconUrl = "https://s2.coinmarketcap.com/static/img/coins/128x128/{id}.png";
 const headers = {
     Accept: "application/json",
@@ -45,4 +45,25 @@ async function getAssets(start = 1, limit = 100) {
     return assets;
 }
 
-export default { getAssets };
+async function getBookmarks() {
+    const snapshot = await firestore.getAll();
+
+    return snapshot.map((s) => s.data() as IAsset);
+}
+
+async function storeAsset(asset: IAsset) {
+    try {
+        await firestore.create(asset, asset.slug);
+        return true;
+    } catch (err) {
+        // Ignore.
+    }
+
+    return false;
+}
+
+function removeAsset(slug: string) {
+    return firestore.remove(slug);
+}
+
+export default { getAssets, getBookmarks, storeAsset, removeAsset };
