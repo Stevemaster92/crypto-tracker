@@ -69,6 +69,17 @@ const getAssets = (start = 0, limit = 50) => {
         .then(async (token) => {
             error.value = false;
 
+            // Fetch bookmarked assets.
+            try {
+                const { data } = await axios.get<IAsset[]>(`${import.meta.env.VITE_API_URL}/coin/bookmarks`, {
+                    headers: getHeaders(token),
+                });
+                bookmarks.value = data;
+            } catch (err) {
+                // Ignore.
+            }
+
+            // Fetch all assets.
             try {
                 const { data } = await axios.get<IAsset[]>(`${import.meta.env.VITE_API_URL}/coin/assets`, {
                     headers: getHeaders(token),
@@ -86,33 +97,10 @@ const getAssets = (start = 0, limit = 50) => {
         .catch(console.error);
 };
 
-const getBookmarks = () => {
-    getAuth()
-        .currentUser?.getIdToken(true)
-        .then(async (token) => {
-            error.value = false;
-
-            try {
-                const { data } = await axios.get<IAsset[]>(`${import.meta.env.VITE_API_URL}/coin/bookmarks`, {
-                    headers: getHeaders(token),
-                });
-                bookmarks.value = data;
-
-                // searchBy(search.value);
-                // sortBy(sort.value, order.value);
-            } catch (err) {
-                console.log(err);
-                error.value = true;
-            }
-        })
-        .catch(console.error);
-};
-
 const isBookmarked = (asset: IAsset) => (bookmarks.value ? bookmarks.value.some((b) => b.id === asset.id) : false);
 
 onMounted(() => {
     getAssets();
-    getBookmarks();
 });
 </script>
 
