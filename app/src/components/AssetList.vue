@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import axios from "axios";
-import { getAuth, indexedDBLocalPersistence } from "firebase/auth";
+import { getAuth } from "firebase/auth";
 import { getHeaders } from "../helpers";
 import { IAsset } from "../models/coin.model";
 import Asset from "./Asset.vue";
@@ -12,6 +12,8 @@ import SearchAndSort from "./SearchAndSort.vue";
 
 let assets = ref<IAsset[]>();
 let filtered = ref<IAsset[]>();
+let bookmarks = ref<IAsset[]>();
+
 const error = ref(false);
 const search = ref("");
 const sort = ref("cmc_rank");
@@ -62,8 +64,6 @@ const sortBy = (sortString: string, orderString: string) => {
 };
 
 const getAssets = (start = 0, limit = 50) => {
-    console.log(search.value);
-
     getAuth()
         .currentUser?.getIdToken(true)
         .then(async (token) => {
@@ -86,7 +86,34 @@ const getAssets = (start = 0, limit = 50) => {
         .catch(console.error);
 };
 
-onMounted(getAssets);
+const getBookmarks = () => {
+    getAuth()
+        .currentUser?.getIdToken(true)
+        .then(async (token) => {
+            error.value = false;
+
+            try {
+                const { data } = await axios.get<IAsset[]>(`${import.meta.env.VITE_API_URL}/coin/bookmarks`, {
+                    headers: getHeaders(token),
+                });
+                bookmarks.value = data;
+
+                // searchBy(search.value);
+                // sortBy(sort.value, order.value);
+            } catch (err) {
+                console.log(err);
+                error.value = true;
+            }
+        })
+        .catch(console.error);
+};
+
+const isBookmarked = (asset: IAsset) => (bookmarks.value ? bookmarks.value.some((b) => b.id === asset.id) : false);
+
+onMounted(() => {
+    getAssets();
+    getBookmarks();
+});
 </script>
 
 <template>
@@ -98,7 +125,7 @@ onMounted(getAssets);
         <Pagination @update="getAssets" class="mb-4" />
 
         <div v-if="filtered" class="grid md:grid-cols-2 gap-4">
-            <Asset v-for="asset in filtered" :key="asset.id" :asset="asset" />
+            <Asset v-for="asset in filtered" :key="asset.id" :asset="asset" :isBookmarked="isBookmarked(asset)" />
         </div>
 
         <LoadingBar v-else>Loading assets...</LoadingBar>
