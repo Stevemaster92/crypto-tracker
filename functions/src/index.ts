@@ -8,7 +8,9 @@ import cookieParser from "cookie-parser";
 import logger from "morgan";
 import cors from "cors";
 
-import { initializeApp, credential } from "firebase-admin";
+import { credential } from "firebase-admin";
+import { initializeApp } from "firebase-admin/app";
+
 import * as functions from "firebase-functions";
 
 // Initialize Firebase.
