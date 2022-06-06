@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import axios from "axios";
-import { getAuth } from "firebase/auth";
 import { ref, onMounted, watch } from "vue";
-import { getHeaders } from "../helpers";
 import { IAsset } from "../models/coin.model";
+import service from "../services/coin.service";
 import Asset from "./Asset.vue";
 import LoadingBar from "./LoadingBar.vue";
 import Pagination from "./Pagination.vue";
@@ -64,29 +63,34 @@ const sortBy = (sortString: string, orderString: string) => {
     });
 };
 
-const getAssets = (start = 0, limit = 50) => {
-    getAuth()
-        .currentUser?.getIdToken(true)
-        .then(async (token) => {
-            error.value = false;
+const getAssets = async (start = 0, limit = 50) => {
+    error.value = false;
 
-            // Fetch all assets.
-            try {
-                const resources = props.isBookmarked ? "bookmarks" : "assets";
-                const { data } = await axios.get<IAsset[]>(`${import.meta.env.VITE_API_URL}/coin/${resources}`, {
-                    headers: getHeaders(token),
-                    params: { start: start * limit + 1, limit },
-                });
-                assets.value = data;
+    // Fetch all assets.
+    try {
+        const bookmarks = service.getBookmarks();
 
-                searchBy(search.value);
-                sortBy(sort.value, order.value);
-            } catch (err) {
-                console.log(err);
-                error.value = true;
-            }
-        })
-        .catch(console.error);
+        if (props.isBookmarked) {
+            assets.value = bookmarks;
+        } else {
+            const { data } = await axios.get<IAsset[]>(`${import.meta.env.VITE_API_URL}/coin/assets`, {
+                params: { start: start * limit + 1, limit },
+            });
+
+            // Assign bookmark to respective assets.
+            assets.value = data.map((asset) => {
+                asset.is_bookmarked = bookmarks.some((b) => b.id === asset.id);
+
+                return asset;
+            });
+        }
+
+        searchBy(search.value);
+        sortBy(sort.value, order.value);
+    } catch (err) {
+        console.log(err);
+        error.value = true;
+    }
 };
 
 onMounted(getAssets);

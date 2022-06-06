@@ -1,3 +1,3 @@
 # Crypto Tracker
 
-A simple web application which tracks the latest market data of all active cryptocurrencies on [CoinMarketCap](https://coinmarketcap.com/).
+A simple web application built with [Vue.js](https://vuejs.org/) which tracks the latest market data of all available cryptocurrencies on [CoinMarketCap](https://coinmarketcap.com/).

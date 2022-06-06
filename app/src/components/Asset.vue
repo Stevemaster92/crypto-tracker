@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import axios from "axios";
 import { IAsset } from "../models/coin.model";
-import { getAuth } from "firebase/auth";
-import { getHeaders } from "../helpers";
+import service from "../services/coin.service";
 
 const props = defineProps<{ asset: IAsset; showBookmark: boolean }>();
 const quote = props.asset.quote["USD"];
@@ -18,33 +16,24 @@ const toReadableNumber = (num: number) => {
 };
 
 const onBookmarked = (event: Event) => {
-    getAuth()
-        .currentUser?.getIdToken(true)
-        .then(async (token) => {
-            bookmarking.value = true;
-            bookmarkText.value = isBookmarked.value ? "Unbookmarking..." : "Bookmarking...";
+    bookmarking.value = true;
+    bookmarkText.value = isBookmarked.value ? "Unbookmarking..." : "Bookmarking...";
 
-            try {
-                if (!isBookmarked.value) {
-                    await axios.post<IAsset[]>(`${import.meta.env.VITE_API_URL}/coin/bookmarks`, props.asset, {
-                        headers: getHeaders(token),
-                    });
-                } else {
-                    await axios.delete(`${import.meta.env.VITE_API_URL}/coin/bookmarks/${props.asset.slug}`, {
-                        headers: getHeaders(token),
-                    });
-                }
+    try {
+        if (!isBookmarked.value) {
+            service.storeAsset(props.asset);
+        } else {
+            service.removeAsset(props.asset.slug);
+        }
 
-                isBookmarked.value = !isBookmarked.value;
-                bookmarkText.value = isBookmarked.value ? "Bookmarked!" : "Unbookmarked!";
-            } catch (err) {
-                console.log(err);
-                bookmarkText.value = "Failed!";
-            }
+        isBookmarked.value = !isBookmarked.value;
+        bookmarkText.value = isBookmarked.value ? "Bookmarked!" : "Unbookmarked!";
+    } catch (err) {
+        console.log(err);
+        bookmarkText.value = "Failed!";
+    }
 
-            setTimeout(() => (bookmarking.value = false), 2000);
-        })
-        .catch(console.error);
+    setTimeout(() => (bookmarking.value = false), 2000);
 };
 </script>
 

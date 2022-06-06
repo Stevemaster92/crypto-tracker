@@ -1,12 +1,8 @@
 import { Router } from "express";
-import auth from "./api/auth";
-import coin from "./api/coin";
-
-import verifyToken from "./middleware/token.middleware";
+import coin from "./routes/coin.route";
 
 const router = Router();
 
-router.use("/auth", auth);
-router.use("/coin", [verifyToken, coin]);
+router.use("/coin", coin);
 
 export default router;
